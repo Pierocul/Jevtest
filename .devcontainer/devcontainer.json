@@ -1,0 +1,15 @@
+{
+  "name": "Jev · Triaje de mensajes",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11",
+  "secrets": {
+    "TYPESAFE_API_KEY": {
+      "description": "Tu clave de TypeSafe (https://console.typesafe.ai/)"
+    }
+  },
+  "postCreateCommand": "pip install -r requirements.txt",
+  "postAttachCommand": "uvicorn app:app --host 0.0.0.0 --port 8000",
+  "forwardPorts": [8000],
+  "portsAttributes": {
+    "8000": { "label": "Web de la demo", "onAutoForward": "openBrowser" }
+  }
+}

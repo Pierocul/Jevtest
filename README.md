@@ -46,6 +46,21 @@ Correrla en tu computadora:
 ```
 y abre http://localhost:8000
 
+### Probarla con GitHub Codespaces (sin instalar nada)
+
+GitHub Pages no sirve: TypeSafe no acepta llamadas desde páginas estáticas.
+Codespaces sí, porque ejecuta el servidor en la nube de GitHub.
+
+1. En github.com abre el repo y elige la rama con este código.
+2. Toca **Code → Codespaces → Create codespace on …**.
+3. GitHub te pide `TYPESAFE_API_KEY`: pega tu clave (queda guardada como
+   secreto, no en el código).
+4. Espera 1-2 minutos: se instala todo y la web arranca sola. Si no se abre,
+   ve a la pestaña **Ports** y toca el globo 🌐 del puerto 8000.
+
+El enlace solo lo puedes abrir tú (con tu sesión de GitHub). Cuando termines,
+detén el codespace para no gastar tus horas gratis.
+
 ### Publicarla gratis en Render (se puede hacer desde el celular)
 
 1. Entra en https://render.com e inicia sesión con tu cuenta de GitHub.
