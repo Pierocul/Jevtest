@@ -12,6 +12,10 @@
   ol#pistas li small { font-family: var(--mono); color: var(--muted); }
   #top .bars { font-size: 12px; row-gap: 8px; }
   #top .bars > span:first-child, #top .bars > span:nth-child(3n+1) { color: var(--text); }
+  ol#pistas li { display: flex; gap: 8px; align-items: baseline; }
+  ol#pistas li span { flex: 1; }
+  ol#pistas li button { background: none; border: 0; color: var(--muted); font-size: 16px; padding: 0 4px; }
+  #aviso { border: 1px solid #6b4d1c; background: #221a0c; border-radius: 10px; padding: 10px 12px; font-size: 14px; line-height: 1.5; display: grid; gap: 8px; }
   .catalogo { font-family: var(--mono); font-size: 12px; color: var(--muted); line-height: 1.7; }
 </style>
 </head>
@@ -31,6 +35,8 @@
       <div class="panel-body">
         <div id="estado" class="muted">Piensa en una película… y dame la primera pista.</div>
         <div id="metricas"></div>
+        <div id="aviso" hidden></div>
+        <label id="pistas-titulo" hidden>Jev ve todas estas pistas juntas</label>
         <ol id="pistas"></ol>
         <form id="form" class="fila" style="flex-wrap:nowrap">
           <input id="pista" placeholder="Ej.: Un niño quiere ser músico…" maxlength="200" autocomplete="off">
@@ -47,38 +53,61 @@
 <script src="/static/comun.js"></script>
 <script>
 const panel = panelJSON($("#json"));
-let pistas = [], juegos = [], ocupado = false;
+let pistas = [], notas = [], juegos = [], ocupado = false;
 const INFERENCIAS = {
   animada: "animada", en_espanol: "en español", antes_2000: "antes del 2000", para_ninos: "para niños",
   miedo: "terror/suspenso", ciencia_ficcion: "ciencia ficción/fantasía", romance: "romance", basada_en_hechos: "hechos reales",
 };
 
 function reiniciar() {
-  pistas = [];
-  $("#pistas").replaceChildren();
+  pistas = []; notas = [];
+  pintarPistas();
   $("#top").replaceChildren();
   $("#inferencias").replaceChildren();
   $("#metricas").replaceChildren();
+  $("#aviso").hidden = true;
   $("#estado").className = "muted";
   $("#estado").textContent = "Piensa en una película… y dame la primera pista.";
 }
 
-async function darPista(texto) {
-  if (ocupado || !texto) return;
+function pintarPistas() {
+  $("#pistas-titulo").hidden = pistas.length < 2;
+  $("#pistas").replaceChildren(...pistas.map((p, i) => {
+    const li = el("li");
+    const txt = el("span", null, p + " ");
+    txt.append(el("small", null, notas[i] ?? (ocupado && i === pistas.length - 1 ? "pensando…" : "")));
+    const quitar = el("button", null, "✕");
+    quitar.title = "Quitar esta pista";
+    quitar.onclick = () => quitarPista(i);
+    li.append(txt, quitar);
+    return li;
+  }));
+}
+
+function aviso(texto, boton) {
+  const a = $("#aviso");
+  a.replaceChildren(el("div", null, texto));
+  if (boton) {
+    const b = el("button", "primary", boton);
+    b.onclick = reiniciar;
+    a.append(b);
+  }
+  a.hidden = false;
+}
+
+async function consultar() {
+  if (!pistas.length) return reiniciar();
   ocupado = true;
   $("#dar").disabled = true;
-  pistas.push(texto);
-  const li = el("li", null, texto + " ");
-  const nota = el("small", null, "pensando…");
-  li.append(nota);
-  $("#pistas").append(li);
+  pintarPistas();
   try {
     const r = await api("/api/pelicula", { pistas });
     const [cls, txt] = r.estado;
     $("#estado").className = cls;
     $("#estado").textContent = txt;
     $("#metricas").replaceChildren(metricas(r.llamada));
-    nota.textContent = `→ ${r.top[0].titulo} ${pct(r.top[0].prob)}`;
+    notas[pistas.length - 1] = `→ ${r.top[0].titulo} ${pct(r.top[0].prob)}`;
+    pintarPistas();
     const top = el("div");
     top.append(el("label", null, `Top 5 · confianza ${pct(r.confianza)}`), barras(r.top.map((t) => [t.titulo, t.prob])));
     $("#top").replaceChildren(top);
@@ -90,15 +119,32 @@ async function darPista(texto) {
     }
     inf.append(el("label", null, "Lo que deduzco de tus pistas"), tags);
     $("#inferencias").replaceChildren(inf);
-    panel.mostrar(r.llamada, `Pista ${pistas.length}`);
+    $("#aviso").hidden = true;
+    if (r.contradiccion >= 0.7) {
+      aviso(`🔀 Parece que tus pistas hablan de películas distintas (${pct(r.contradiccion)}). Jev tiene en cuenta todas las pistas de la partida: si cambiaste de película, empieza una nueva o quita las pistas viejas con ✕.`, "↺ Empezar nueva partida");
+    } else if (cls === "ok") {
+      aviso("🎉 ¿Acertó? Empieza otra partida para probar con otra película.", "↺ Nueva partida");
+    }
+    panel.mostrar(r.llamada, `${pistas.length} pista(s)`);
   } catch (e) {
-    pistas.pop();
-    li.remove();
     $("#estado").className = "err";
     $("#estado").textContent = "Error: " + e.message;
   }
   ocupado = false;
   $("#dar").disabled = false;
+}
+
+async function darPista(texto) {
+  if (ocupado || !texto) return;
+  pistas.push(texto);
+  await consultar();
+}
+
+async function quitarPista(i) {
+  if (ocupado) return;
+  pistas.splice(i, 1);
+  notas = notas.slice(0, i);
+  await consultar();
 }
 
 $("#form").onsubmit = (e) => {

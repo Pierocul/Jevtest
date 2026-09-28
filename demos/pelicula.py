@@ -56,6 +56,11 @@ async def analizar(client: AsyncTypeSafeClient, datos: Entrada) -> dict:
         ),
         **{f"pista_{k}": Noul(instructions=q) for k, q in PISTAS_SOBRE.items()},
     }
+    if len(pistas) > 1:
+        # Detecta si el jugador cambió de película sin empezar una partida nueva.
+        preguntas["contradiccion"] = Noul(
+            instructions="¿Alguna de las `pistas` describe una película distinta a la que describen las otras?"
+        )
     r, llamada = await preguntar(client, {"pistas": pistas}, preguntas)
 
     c = r.choices["pelicula"]
@@ -75,6 +80,7 @@ async def analizar(client: AsyncTypeSafeClient, datos: Entrada) -> dict:
         "confianza": c.confidence,
         "estado": estado,
         "inferencias": {k: r.nouls[f"pista_{k}"].noul for k in PISTAS_SOBRE},
+        "contradiccion": r.nouls["contradiccion"].noul if "contradiccion" in r.nouls else 0.0,
         "catalogo": len(CATALOGO),
         "llamada": llamada,
     }

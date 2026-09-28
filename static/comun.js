@@ -28,8 +28,9 @@ const AYUDA = {
   ],
   "/pelicula": [
     "Piensa en una película y escribe una pista corta. Toca «Pista».",
-    "Sigue dando pistas de a una: verás cómo cambian las probabilidades del Top 5.",
-    "Toca «🎲 Ejemplo» para ver una partida automática, o «↺ Nueva» para empezar otra.",
+    "Sigue dando pistas de a una: Jev junta todas las pistas de la partida y verás cómo cambian las probabilidades del Top 5.",
+    "¿Vas a pensar en otra película? Toca «↺ Nueva» (o quita pistas con ✕); si no, las pistas viejas siguen contando.",
+    "Toca «🎲 Ejemplo» para ver una partida automática.",
   ],
   "/ensayo": [
     "Elige un ensayo de ejemplo y toca «▶ Corregir ensayo», o escribe el tuyo con «✏️ Escribir el mío».",
