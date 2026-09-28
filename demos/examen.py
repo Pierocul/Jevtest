@@ -150,6 +150,8 @@ async def analizar(client: AsyncTypeSafeClient, datos: Entrada) -> dict:
         "total": {
             "llamadas": len(alumnos),
             "preguntas": sum(a["llamada"]["preguntas"] for a in alumnos),
+            "tokens": sum(a["llamada"]["tokens"] for a in alumnos),
+            "costo": sum(a["llamada"]["costo"] for a in alumnos),
             "ms": round((time.perf_counter() - inicio) * 1000),
         },
     }

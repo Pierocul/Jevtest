@@ -6,7 +6,52 @@ const DEMOS = [
   ["/cv", "👤 CV vs oferta"],
   ["/pelicula", "🎬 Adivina la peli"],
   ["/ensayo", "✍️ Ensayos"],
+  ["/ayuda", "ℹ️ Cómo usar"],
 ];
+
+// Instrucciones cortas de cada demo (se muestran en «¿Cómo se usa?»)
+const AYUDA = {
+  "/": [
+    "Toca «▶ Probar ejemplos» para analizar 5 mensajes de clientes, o escribe el tuyo abajo y toca «Enviar».",
+    "Cada mensaje sale con su tipo, la probabilidad de spam y la urgencia.",
+    "La línea de color es la decisión: a qué equipo mandarlo, revisarlo a mano o descartarlo.",
+  ],
+  "/examen": [
+    "Ya hay un examen de ciencias y 5 alumnos cargados. Toca «▶ Corregir toda la clase».",
+    "Cada alumno sale con su nota y cada pregunta en verde (bien), amarillo (a medias) o rojo (mal). El «?» significa que Jev duda.",
+    "Toca «＋ Añadir alumno» para escribir tus propias respuestas y ver cómo las corrige.",
+  ],
+  "/cv": [
+    "Elige un CV de ejemplo y toca «▶ Analizar este CV», o «⚡ Los 4 en paralelo» para ver un ranking.",
+    "Cada requisito sale con ✅ (lo cumple), ❌ (no) o ❓ (duda) y su probabilidad.",
+    "Puedes cambiar la oferta y los requisitos, o pegar tu propio CV con «✏️ Pegar el mío».",
+  ],
+  "/pelicula": [
+    "Piensa en una película y escribe una pista corta. Toca «Pista».",
+    "Sigue dando pistas de a una: verás cómo cambian las probabilidades del Top 5.",
+    "Toca «🎲 Ejemplo» para ver una partida automática, o «↺ Nueva» para empezar otra.",
+  ],
+  "/ensayo": [
+    "Elige un ensayo de ejemplo y toca «▶ Corregir ensayo», o escribe el tuyo con «✏️ Escribir el mío».",
+    "Sale una nota de 0 a 10 y cada aspecto de la rúbrica con su nivel y un consejo si sale bajo.",
+    "Puedes cambiar la consigna por cualquier otro tema.",
+  ],
+};
+
+async function compartir(boton) {
+  const datos = { title: "Demos de Jev", text: "Mira lo que hace Jev, el modelo de TypeSafe:", url: location.origin + location.pathname };
+  try {
+    if (navigator.share) return await navigator.share(datos);
+    await navigator.clipboard.writeText(datos.url);
+    boton.textContent = "✓ Enlace copiado";
+  } catch {}
+}
+
+function botonCompartir() {
+  const b = el("button", "ghost", "🔗 Compartir esta página");
+  b.onclick = () => compartir(b);
+  return b;
+}
 
 const $ = (s, raiz = document) => raiz.querySelector(s);
 const pct = (x) => Math.round(x * 100) + "%";
@@ -37,11 +82,16 @@ function barras(filas) {
   return b;
 }
 
-function metricas({ llamadas = 1, preguntas, ms }) {
+const dolares = (c) => "$" + (c >= 0.01 ? c.toFixed(2) : c.toPrecision(2));
+const miles = (n) => n.toLocaleString("es");
+
+function metricas({ llamadas = 1, preguntas, ms, tokens, costo }) {
   const txt = llamadas > 1
     ? `⚡ ${llamadas} llamadas en paralelo · ${preguntas} preguntas · ${seg(ms)}`
     : `⚡ 1 llamada · ${preguntas} preguntas a la vez · ${seg(ms)}`;
-  return el("div", "metricas", txt);
+  const m = el("div", "metricas", txt);
+  if (tokens) m.append(el("div", "muted", `${miles(tokens)} tokens · costó ${dolares(costo)}`));
+  return m;
 }
 
 // Menú superior
@@ -58,6 +108,21 @@ function metricas({ llamadas = 1, preguntas, ms }) {
   }
   header.append(logo, nav);
   nav.querySelector(".on")?.scrollIntoView({ inline: "center", block: "nearest" });
+
+  const pasos = AYUDA[location.pathname];
+  const lead = $(".lead");
+  if (pasos && lead) {
+    const d = el("details", "ayuda");
+    const ol = el("ol", "lista");
+    for (const p of pasos) ol.append(el("li", null, p));
+    const pie = el("div", "fila");
+    pie.style.marginTop = "10px";
+    const mas = el("a", null, "Más ayuda →");
+    mas.href = "/ayuda";
+    pie.append(botonCompartir(), mas);
+    d.append(el("summary", null, "❓ ¿Cómo se usa?"), ol, pie);
+    lead.after(d);
+  }
 })();
 
 // Llamadas al servidor (con código de acceso opcional)

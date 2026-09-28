@@ -91,7 +91,8 @@ async function correr(lista) {
     const rs = await Promise.all(lista.map((x) => api("/api/cv", datos(x.cv))));
     const ms = Math.round(performance.now() - inicio);
     const orden = rs.map((r, i) => [lista[i].nombre, r]).sort((a, b) => b[1].puntaje - a[1].puntaje);
-    res.replaceChildren(metricas({ llamadas: rs.length, preguntas: rs.reduce((s, r) => s + r.llamada.preguntas, 0), ms }));
+    const suma = (k) => rs.reduce((s, r) => s + r.llamada[k], 0);
+    res.replaceChildren(metricas({ llamadas: rs.length, preguntas: suma("preguntas"), tokens: suma("tokens"), costo: suma("costo"), ms }));
     if (orden.length > 1) res.append(el("div", "muted", "Ranking de mejor a peor:"));
     for (const [nombre, r] of orden) res.append(tarjeta(nombre, r));
     marcar(res.querySelector(".card"));

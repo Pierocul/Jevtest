@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Cómo usar · Demos de Jev</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/style.css">
+<style>
+  .doc { max-width: 720px; display: grid; gap: 16px; }
+  .doc .panel-body p { margin: 0; font-size: 14px; line-height: 1.6; }
+  .doc h2 { margin: 0; font-size: 17px; }
+  .demo { display: grid; grid-template-columns: 34px 1fr; gap: 4px 10px; align-items: start; padding: 10px 0; border-top: 1px solid var(--line); text-decoration: none; color: var(--text); }
+  .demo:first-of-type { border-top: 0; }
+  .demo .ico { font-size: 24px; grid-row: span 2; }
+  .demo b { color: var(--accent); }
+  .demo span { font-size: 13px; color: var(--muted); line-height: 1.5; }
+  .numeros { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
+  .numero { background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
+  .numero b { display: block; font-size: 22px; }
+  .numero span { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+</style>
+</head>
+<body>
+<header></header>
+<main>
+  <div class="eyebrow">Guía rápida</div>
+  <h1>ℹ️ Cómo usar estas demos</h1>
+  <p class="lead">Todo lo que necesitas para probarlas y compartirlas. Funciona igual en el celular y en la computadora.</p>
+
+  <div class="doc">
+    <section class="panel"><div class="panel-body">
+      <h2>🤖 ¿Qué es esto?</h2>
+      <p><b>Jev</b> es un modelo de inteligencia artificial de <a href="https://typesafe.ai" target="_blank" rel="noopener">TypeSafe</a>. No escribe textos como un chatbot: <b>responde preguntas concretas</b> con números que un programa puede usar directamente.</p>
+      <p>Su truco: le das un texto una sola vez y le haces <b>muchas preguntas a la vez</b>, que responde en una fracción de segundo. Hay tres tipos de pregunta:</p>
+      <ul class="lista">
+        <li><b>Sí o no</b> (Noul): «¿es spam?» → 98%</li>
+        <li><b>Elegir una opción</b> (Choice): «¿consulta, queja o venta?» → queja</li>
+        <li><b>Puntuar en una escala</b> (Score): «urgencia baja, media o alta» → alta</li>
+      </ul>
+    </div></section>
+
+    <section class="panel"><div class="panel-body">
+      <h2>🚀 Las demos</h2>
+      <p>Todas traen ejemplos listos: entra y toca el botón principal. Cada página tiene un recuadro <b>«❓ ¿Cómo se usa?»</b> con los pasos.</p>
+      <div>
+        <a class="demo" href="/"><span class="ico">📨</span><b>Triaje de mensajes</b><span>Clasifica mensajes de clientes: tipo, spam y urgencia.</span></a>
+        <a class="demo" href="/examen"><span class="ico">📝</span><b>Corrector de exámenes</b><span>Corrige a toda una clase a la vez y marca lo dudoso para el profe.</span></a>
+        <a class="demo" href="/cv"><span class="ico">👤</span><b>CV vs oferta</b><span>Revisa cada requisito de una oferta de trabajo contra un CV.</span></a>
+        <a class="demo" href="/pelicula"><span class="ico">🎬</span><b>Adivina la película</b><span>Juego: das pistas y Jev adivina entre ~70 películas.</span></a>
+        <a class="demo" href="/ensayo"><span class="ico">✍️</span><b>Corrector de ensayos</b><span>Pone nota con una rúbrica y da consejos.</span></a>
+      </div>
+    </div></section>
+
+    <section class="panel"><div class="panel-body">
+      <h2>🔢 Cómo leer los resultados</h2>
+      <ul class="lista">
+        <li><b>Probabilidad:</b> qué tan probable es cada respuesta posible (ej.: spam 98%).</li>
+        <li><b>Confianza:</b> qué tan seguro está Jev de su respuesta. Si es baja, la demo lo marca con ⚠ o «?» para que lo revise una persona.</li>
+        <li><b>Recuadro verde ⚡:</b> cuántas preguntas se hicieron en una sola llamada, cuánto tardó y cuánto costó.</li>
+        <li><b>Panel «preguntas.json / respuesta.json»:</b> muestra exactamente qué se le preguntó a Jev y qué respondió. Toca un resultado para ver el suyo.</li>
+      </ul>
+      <p>Las notas y decisiones (aprobar, descartar, revisar) las calcula el programa a partir de las respuestas de Jev, no Jev.</p>
+    </div></section>
+
+    <section class="panel"><div class="panel-body">
+      <h2>🔒 Código de acceso</h2>
+      <p>La primera vez que analices algo puede aparecer una ventana pidiendo un <b>código de acceso</b>. Pídeselo a quien te compartió el enlace. El teléfono lo recuerda para la próxima vez.</p>
+      <p>⚠ Evita escribir datos personales reales (CVs reales, nombres de alumnos): los textos se envían a TypeSafe para analizarlos.</p>
+    </div></section>
+
+    <section class="panel"><div class="panel-body">
+      <h2>🐢 Si tarda en abrir</h2>
+      <p>El servidor es gratuito y «se duerme» cuando nadie lo usa. La primera visita puede tardar <b>30 a 60 segundos</b>; después va rápido.</p>
+    </div></section>
+
+    <section class="panel"><div class="panel-body">
+      <h2>📊 Uso de esta web</h2>
+      <div class="numeros" id="numeros"><div class="cargando">Cargando…</div></div>
+      <p class="muted" id="uso-nota" style="font-size:12px"></p>
+      <p>Jev cobra <b id="precio">$0.042</b> por cada millón de tokens de entrada (un token ≈ ¾ de palabra). El <b>saldo que te queda</b> solo se ve en tu cuenta de <a href="https://console.typesafe.ai" target="_blank" rel="noopener">console.typesafe.ai</a>.</p>
+    </div></section>
+
+    <section class="panel"><div class="panel-body">
+      <h2>🔗 Compartir</h2>
+      <p>Manda este enlace a quien quieras. Si pusiste un código de acceso, envíaselo aparte.</p>
+      <div class="fila" id="compartir"></div>
+    </div></section>
+  </div>
+</main>
+<script src="/static/comun.js"></script>
+<script>
+$("#compartir").append(botonCompartir());
+$("#compartir button").textContent = "🔗 Compartir las demos";
+$("#compartir button").onclick = function () {
+  const url = location.origin + "/";
+  const datos = { title: "Demos de Jev", text: "Mira lo que hace Jev, el modelo de TypeSafe:", url };
+  (navigator.share ? navigator.share(datos) : navigator.clipboard.writeText(url).then(() => (this.textContent = "✓ Enlace copiado"))).catch(() => {});
+};
+
+api("/api/uso").then((u) => {
+  const n = (valor, texto) => { const d = el("div", "numero"); d.append(el("b", null, valor), el("span", null, texto)); return d; };
+  const porDolar = u.tokens_por_llamada ? Math.floor(1_000_000 / u.dolares_por_millon / u.tokens_por_llamada) : null;
+  $("#numeros").replaceChildren(
+    n(miles(u.llamadas), "llamadas a Jev"),
+    n(miles(u.preguntas), "preguntas respondidas"),
+    n(miles(u.tokens_entrada), "tokens usados"),
+    n(dolares(u.costo), "gastado en total"),
+    n(porDolar ? "≈ " + miles(porDolar) : "—", "llamadas por cada $1"),
+  );
+  $("#precio").textContent = "$" + u.dolares_por_millon;
+  $("#uso-nota").textContent = `Contado desde que el servidor arrancó (${new Date(u.desde).toLocaleString("es")}). Se reinicia cuando el servidor se duerme.`;
+}).catch(() => $("#numeros").replaceChildren(el("div", "err", "No se pudo cargar el uso")));
+</script>
+</body>
+</html>

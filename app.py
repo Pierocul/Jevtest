@@ -17,13 +17,13 @@ from pydantic import ValidationError
 from typesafe_sdk import AsyncTypeSafeClient, TypeSafeError
 
 from demo import MENSAJES
-from demos import cv, ensayo, examen, pelicula, triaje
+from demos import comun, cv, ensayo, examen, pelicula, triaje
 
 RAIZ = Path(__file__).parent
 ESTATICOS = RAIZ / "static"
 CODIGO_ACCESO = os.environ.get("CODIGO_ACCESO", "")
 DEMOS = {"triaje": triaje, "examen": examen, "cv": cv, "pelicula": pelicula, "ensayo": ensayo}
-PAGINAS = {"": "index.html", **{k: f"{k}.html" for k in DEMOS if k != "triaje"}}
+PAGINAS = {"": "index.html", "ayuda": "ayuda.html", **{k: f"{k}.html" for k in DEMOS if k != "triaje"}}
 
 cliente: AsyncTypeSafeClient
 
@@ -37,6 +37,18 @@ async def ciclo_de_vida(_: FastAPI):
 
 app = FastAPI(title="Jev · demos", lifespan=ciclo_de_vida)
 app.mount("/static", StaticFiles(directory=ESTATICOS), name="static")
+
+
+@app.get("/api/uso")
+def uso() -> dict:
+    u = comun.USO
+    por_llamada = u["tokens_entrada"] / u["llamadas"] if u["llamadas"] else None
+    return {
+        **u,
+        "costo": comun.costo(u["tokens_entrada"]),
+        "dolares_por_millon": comun.DOLARES_POR_MILLON,
+        "tokens_por_llamada": round(por_llamada) if por_llamada else None,
+    }
 
 
 @app.get("/api/ejemplos/{nombre}")
