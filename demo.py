@@ -59,6 +59,7 @@ def analizar(client: TypeSafeClient, mensaje: str) -> dict:
         "urgencia_probs": {urg.legend[k]: v for k, v in urg.probabilities.items()},
         "urgencia_conf": urg.confidence,
         "modelo": r.model,
+        "respuesta": r.model_dump(mode="json"),
     }
 
 
