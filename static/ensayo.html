@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Corrector de ensayos · Jev</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/style.css">
+<style>
+  .aspecto { display: grid; gap: 5px; padding: 10px 0; border-top: 1px solid var(--line); }
+  .aspecto:first-child { border-top: 0; padding-top: 0; }
+  .aspecto .fila { justify-content: space-between; font-size: 14px; }
+  .niveles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px; }
+  .niveles i { height: 8px; border-radius: 3px; background: var(--accent); }
+  .aspecto small { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+</style>
+</head>
+<body>
+<header></header>
+<main>
+  <div class="eyebrow">Patrón · Rúbrica de Scores</div>
+  <h1>✍️ Corrector de ensayos</h1>
+  <p class="lead">Una rúbrica de 6 aspectos (cada uno un Score), 4 chequeos de sí/no, la postura y el nivel educativo aparente: 12 preguntas en una sola llamada. La nota la calcula el código con pesos fijos.</p>
+
+  <div class="grid">
+    <section class="panel">
+      <div class="panel-head"><span><span class="dot"></span>ENSAYO</span></div>
+      <div class="panel-body">
+        <div><label>Consigna</label><textarea id="consigna" style="min-height:70px"></textarea></div>
+        <div><label>Elige un ensayo de ejemplo o escribe el tuyo</label><div class="chips" id="ensayos"></div></div>
+        <textarea id="texto" style="min-height:220px" placeholder="Escribe o pega aquí el ensayo…"></textarea>
+        <button class="primary" id="corregir">▶ Corregir ensayo</button>
+        <div id="resultado" style="display:grid;gap:12px"></div>
+      </div>
+    </section>
+    <section id="json"></section>
+  </div>
+</main>
+<script src="/static/comun.js"></script>
+<script>
+const panel = panelJSON($("#json"));
+const CHEQUEOS = { introduccion: "introducción", conclusion: "conclusión", ejemplos: "ejemplos concretos", contraargumento: "responde a la opinión contraria" };
+const POSTURA = { a_favor: "a favor", en_contra: "en contra", matizada: "matizada", sin_postura: "sin postura" };
+
+function pintar(r) {
+  const res = $("#resultado");
+  const cls = r.nota >= 7 ? "ok" : r.nota >= 5 ? "warn" : "bad";
+  const cab = el("div", "fila");
+  cab.style.justifyContent = "space-between";
+  const nota = el("div", "big " + cls, r.nota.toFixed(1));
+  nota.append(el("span", "muted", " / 10"));
+  const tags = el("div", "tags");
+  tags.append(tag("postura", `${POSTURA[r.postura.valor]} ${pct(r.postura.prob)}`),
+              tag("parece de", `${r.nivel_educativo.valor} ${pct(r.nivel_educativo.prob)}`));
+  cab.append(nota, tags);
+
+  const rub = el("div");
+  for (const a of r.aspectos) {
+    const d = el("div", "aspecto");
+    const f = el("div", "fila");
+    f.append(el("b", null, `${a.titulo}${a.peso > 1 ? ` ×${a.peso}` : ""}`), el("span", a.nivel >= 2 ? "ok" : a.nivel === 1 ? "warn" : "bad", `${a.nivel}/${a.max}`));
+    const niveles = el("div", "niveles");
+    a.probs.forEach((p) => { const i = el("i"); i.style.opacity = Math.max(0.08, p); niveles.append(i); });
+    d.append(f, el("div", "txt", a.texto_nivel), niveles,
+             el("small", a.confianza < 0.5 ? "warn" : "", `probabilidad por nivel: ${a.probs.map(pct).join(" · ")} · confianza ${pct(a.confianza)}`));
+    if (a.consejo) d.append(el("div", "warn", "💡 " + a.consejo));
+    rub.append(d);
+  }
+
+  const chk = el("div", "tags");
+  for (const [k, v] of Object.entries(r.chequeos)) chk.append(tag(v >= 0.5 ? "✓" : "✗", `${CHEQUEOS[k]} ${pct(v)}`, v >= 0.5 ? "ok" : "bad"));
+
+  res.replaceChildren(metricas(r.llamada), cab, chk, rub);
+  if (r.dudosos.length) res.append(el("div", "warn", `⚠ Jev duda en: ${r.dudosos.join(", ")}. Que lo revise una persona.`));
+  panel.mostrar(r.llamada);
+  res.firstChild.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+$("#corregir").onclick = async () => {
+  const texto = $("#texto").value.trim();
+  if (!texto) return alert("Escribe un ensayo o elige uno de ejemplo");
+  $("#resultado").replaceChildren(el("div", "cargando", "Jev está corrigiendo…"));
+  $("#corregir").disabled = true;
+  try {
+    pintar(await api("/api/ensayo", { consigna: $("#consigna").value, texto }));
+  } catch (e) {
+    $("#resultado").replaceChildren(el("div", "err", "Error: " + e.message));
+  }
+  $("#corregir").disabled = false;
+};
+
+api("/api/ejemplos/ensayo").then((d) => {
+  $("#consigna").value = d.consigna;
+  const chips = [...d.ensayos, { nombre: "✏️ Escribir el mío", texto: "" }];
+  for (const e of chips) {
+    const b = el("button", "chip", e.nombre);
+    b.onclick = () => {
+      $("#ensayos").querySelectorAll(".chip").forEach((x) => x.classList.toggle("on", x === b));
+      $("#texto").value = e.texto;
+      if (!e.texto) $("#texto").focus();
+    };
+    $("#ensayos").append(b);
+  }
+  $("#ensayos .chip").click();
+});
+</script>
+</body>
+</html>

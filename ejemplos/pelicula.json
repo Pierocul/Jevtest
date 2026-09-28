@@ -1,0 +1,53 @@
+{
+  "juegos": [
+    {
+      "respuesta": "Coco (2017)",
+      "pistas": [
+        "Es una película animada.",
+        "Un niño sueña con ser músico, pero su familia lo prohíbe.",
+        "Viaja a un mundo lleno de esqueletos y colores.",
+        "Todo pasa en México durante el Día de Muertos."
+      ]
+    },
+    {
+      "respuesta": "Titanic (1997)",
+      "pistas": [
+        "Hay un barco enorme.",
+        "Un chico pobre y una chica rica se enamoran.",
+        "El barco choca con un iceberg."
+      ]
+    },
+    {
+      "respuesta": "El laberinto del fauno (2006)",
+      "pistas": [
+        "Pasa en España, después de la guerra civil.",
+        "Una niña encuentra una criatura mitológica en un laberinto.",
+        "La criatura le pide que cumpla tres pruebas."
+      ]
+    },
+    {
+      "respuesta": "Matrix (1999)",
+      "pistas": [
+        "Un programador descubre algo extraño sobre la realidad.",
+        "Le ofrecen elegir entre una pastilla roja y una azul.",
+        "Aprende kung-fu en segundos y esquiva balas."
+      ]
+    },
+    {
+      "respuesta": "Relatos salvajes (2014)",
+      "pistas": [
+        "Son varias historias cortas sin relación entre sí.",
+        "En todas, alguien pierde los estribos.",
+        "Una empieza en un avión donde todos conocen al mismo hombre.",
+        "Es argentina."
+      ]
+    },
+    {
+      "respuesta": "Ninguna (no está en el catálogo)",
+      "pistas": [
+        "Es una comedia chilena.",
+        "Un grupo de amigos organiza un asado que sale muy mal."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Adivina la película · Jev</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/style.css">
+<style>
+  #estado { font-size: 20px; font-weight: 600; line-height: 1.3; }
+  ol#pistas { margin: 0; padding-left: 22px; font-size: 14px; line-height: 1.6; }
+  ol#pistas li small { font-family: var(--mono); color: var(--muted); }
+  #top .bars { font-size: 12px; row-gap: 8px; }
+  #top .bars > span:first-child, #top .bars > span:nth-child(3n+1) { color: var(--text); }
+  .catalogo { font-family: var(--mono); font-size: 12px; color: var(--muted); line-height: 1.7; }
+</style>
+</head>
+<body>
+<header></header>
+<main>
+  <div class="eyebrow">Patrón · Choice sobre un catálogo</div>
+  <h1>🎬 Adivina la película</h1>
+  <p class="lead">Piensa en una película y dame pistas de a una. Con cada pista Jev elige entre <span id="n">~75</span> películas (hay parejas trampa, como Coco y El libro de la vida) y además responde qué deduce de tus pistas. Todo en una llamada.</p>
+
+  <div class="grid">
+    <section class="panel">
+      <div class="panel-head">
+        <span><span class="dot"></span>PARTIDA</span>
+        <span class="fila"><button class="ghost" id="auto">🎲 Ejemplo</button><button class="ghost" id="reiniciar">↺ Nueva</button></span>
+      </div>
+      <div class="panel-body">
+        <div id="estado" class="muted">Piensa en una película… y dame la primera pista.</div>
+        <div id="metricas"></div>
+        <ol id="pistas"></ol>
+        <form id="form" class="fila" style="flex-wrap:nowrap">
+          <input id="pista" placeholder="Ej.: Un niño quiere ser músico…" maxlength="200" autocomplete="off">
+          <button class="primary" id="dar">Pista</button>
+        </form>
+        <div id="top"></div>
+        <div id="inferencias"></div>
+        <details><summary>🎞️ Películas que conozco</summary><div class="catalogo" id="catalogo"></div></details>
+      </div>
+    </section>
+    <section id="json"></section>
+  </div>
+</main>
+<script src="/static/comun.js"></script>
+<script>
+const panel = panelJSON($("#json"));
+let pistas = [], juegos = [], ocupado = false;
+const INFERENCIAS = {
+  animada: "animada", en_espanol: "en español", antes_2000: "antes del 2000", para_ninos: "para niños",
+  miedo: "terror/suspenso", ciencia_ficcion: "ciencia ficción/fantasía", romance: "romance", basada_en_hechos: "hechos reales",
+};
+
+function reiniciar() {
+  pistas = [];
+  $("#pistas").replaceChildren();
+  $("#top").replaceChildren();
+  $("#inferencias").replaceChildren();
+  $("#metricas").replaceChildren();
+  $("#estado").className = "muted";
+  $("#estado").textContent = "Piensa en una película… y dame la primera pista.";
+}
+
+async function darPista(texto) {
+  if (ocupado || !texto) return;
+  ocupado = true;
+  $("#dar").disabled = true;
+  pistas.push(texto);
+  const li = el("li", null, texto + " ");
+  const nota = el("small", null, "pensando…");
+  li.append(nota);
+  $("#pistas").append(li);
+  try {
+    const r = await api("/api/pelicula", { pistas });
+    const [cls, txt] = r.estado;
+    $("#estado").className = cls;
+    $("#estado").textContent = txt;
+    $("#metricas").replaceChildren(metricas(r.llamada));
+    nota.textContent = `→ ${r.top[0].titulo} ${pct(r.top[0].prob)}`;
+    const top = el("div");
+    top.append(el("label", null, `Top 5 · confianza ${pct(r.confianza)}`), barras(r.top.map((t) => [t.titulo, t.prob])));
+    $("#top").replaceChildren(top);
+    const inf = el("div");
+    const tags = el("div", "tags");
+    for (const [k, v] of Object.entries(r.inferencias)) {
+      const icono = v >= 0.7 ? "✓" : v <= 0.3 ? "✗" : "?";
+      tags.append(tag(icono, `${INFERENCIAS[k]} ${pct(v)}`, v >= 0.7 ? "ok" : v <= 0.3 ? "" : "warn"));
+    }
+    inf.append(el("label", null, "Lo que deduzco de tus pistas"), tags);
+    $("#inferencias").replaceChildren(inf);
+    panel.mostrar(r.llamada, `Pista ${pistas.length}`);
+  } catch (e) {
+    pistas.pop();
+    li.remove();
+    $("#estado").className = "err";
+    $("#estado").textContent = "Error: " + e.message;
+  }
+  ocupado = false;
+  $("#dar").disabled = false;
+}
+
+$("#form").onsubmit = (e) => {
+  e.preventDefault();
+  const t = $("#pista").value.trim();
+  $("#pista").value = "";
+  darPista(t);
+};
+$("#reiniciar").onclick = reiniciar;
+$("#auto").onclick = async () => {
+  if (ocupado || !juegos.length) return;
+  $("#auto").disabled = true;
+  reiniciar();
+  const juego = juegos[Math.floor(Math.random() * juegos.length)];
+  for (const p of juego.pistas) {
+    await darPista(p);
+    await new Promise((ok) => setTimeout(ok, 1500));
+  }
+  const fin = el("div", "muted", `(La respuesta era: ${juego.respuesta})`);
+  $("#estado").after(fin);
+  setTimeout(() => fin.remove(), 8000);
+  $("#auto").disabled = false;
+};
+
+api("/api/ejemplos/pelicula").then((d) => {
+  juegos = d.juegos;
+  $("#n").textContent = d.catalogo.length;
+  $("#catalogo").textContent = d.catalogo.join(" · ");
+});
+</script>
+</body>
+</html>

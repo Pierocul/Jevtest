@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>CV vs oferta · Jev</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/style.css">
+<style>
+  .req { display: grid; grid-template-columns: 22px 1fr auto; gap: 6px; align-items: start; font-size: 13px; line-height: 1.4; }
+  .req small { font-family: var(--mono); color: var(--muted); }
+</style>
+</head>
+<body>
+<header></header>
+<main>
+  <div class="eyebrow">Patrón · Un Noul por requisito</div>
+  <h1>👤 CV vs oferta</h1>
+  <p class="lead">Cada requisito de la oferta se convierte en una pregunta de sí/no, más encaje, seniority y alertas. Todo en una llamada. El código decide: descartar, revisar o entrevistar.</p>
+
+  <div class="grid">
+    <section class="panel">
+      <div class="panel-head"><span><span class="dot"></span>LA OFERTA</span></div>
+      <div class="panel-body">
+        <div><label>Descripción del puesto</label><textarea id="oferta" style="min-height:110px"></textarea></div>
+        <div><label>Requisitos obligatorios (uno por línea)</label><textarea id="obligatorios"></textarea></div>
+        <div><label>Requisitos deseables (uno por línea)</label><textarea id="deseables"></textarea></div>
+      </div>
+      <div class="panel-head"><span><span class="dot"></span>EL CANDIDATO</span></div>
+      <div class="panel-body">
+        <div><label>Elige un CV de ejemplo o pega el tuyo</label><div class="chips" id="cvs"></div></div>
+        <textarea id="cv" style="min-height:200px" placeholder="Pega aquí un CV en texto…"></textarea>
+        <div class="fila">
+          <button class="primary" id="analizar" style="flex:1">▶ Analizar este CV</button>
+          <button class="ghost" id="todos">⚡ Los 4 en paralelo</button>
+        </div>
+        <div id="resultados" style="display:grid;gap:10px"></div>
+      </div>
+    </section>
+    <section id="json"></section>
+  </div>
+</main>
+<script src="/static/comun.js"></script>
+<script>
+const panel = panelJSON($("#json"));
+let ejemplos = null;
+const lineas = (id) => $(id).value.split("\n").map((s) => s.trim()).filter(Boolean);
+const ALERTAS = { cambios_frecuentes: "cambia mucho de trabajo", otra_area: "viene de otra área", cv_descuidado: "CV descuidado" };
+const SENIORITY = { junior: "Junior", semi_senior: "Semi-senior", senior: "Senior", lead: "Lead" };
+
+function datos(cv) {
+  return { oferta: $("#oferta").value, obligatorios: lineas("#obligatorios"), deseables: lineas("#deseables"), cv };
+}
+
+function tarjeta(nombre, r) {
+  const card = el("div", "card");
+  card.style.display = "grid"; card.style.gap = "10px";
+  const cab = el("div", "fila");
+  cab.style.justifyContent = "space-between";
+  const cls = r.veredicto[0];
+  const num = el("div", "big " + cls, r.puntaje);
+  num.append(el("span", "muted", "/100"));
+  cab.append(el("b", null, nombre), num);
+
+  const tags = el("div", "tags");
+  tags.append(tag("encaje", r.encaje.nivel.split(":")[0]), tag("nivel", `${SENIORITY[r.seniority.valor]} ${pct(r.seniority.probs[r.seniority.valor])}`));
+  for (const [k, v] of Object.entries(r.alertas)) if (v >= 0.5) tags.append(tag("🚩", `${ALERTAS[k]} ${pct(v)}`, "bad"));
+
+  const reqs = el("div");
+  reqs.style.display = "grid"; reqs.style.gap = "6px";
+  for (const q of r.requisitos) {
+    const icono = q.prob >= 0.7 ? "✅" : q.prob <= 0.3 ? "❌" : "❓";
+    const fila = el("div", "req");
+    const txt = el("div", null, q.texto);
+    txt.append(el("small", null, q.tipo === "obligatorio" ? " · obligatorio" : " · deseable"));
+    fila.append(el("span", null, icono), txt, el("small", null, pct(q.prob)));
+    reqs.append(fila);
+  }
+  card.append(cab, el("div", "decision " + cls, r.veredicto[1]), tags, reqs,
+              barras([["confianza encaje", r.encaje.confianza], ["confianza nivel", r.seniority.confianza]]));
+  card.onclick = () => { marcar(card); panel.mostrar(r.llamada, nombre); };
+  return card;
+}
+
+async function correr(lista) {
+  const res = $("#resultados");
+  res.replaceChildren(el("div", "cargando", lista.length > 1 ? `Analizando ${lista.length} CVs a la vez…` : "Jev está leyendo el CV…"));
+  $("#analizar").disabled = $("#todos").disabled = true;
+  const inicio = performance.now();
+  try {
+    const rs = await Promise.all(lista.map((x) => api("/api/cv", datos(x.cv))));
+    const ms = Math.round(performance.now() - inicio);
+    const orden = rs.map((r, i) => [lista[i].nombre, r]).sort((a, b) => b[1].puntaje - a[1].puntaje);
+    res.replaceChildren(metricas({ llamadas: rs.length, preguntas: rs.reduce((s, r) => s + r.llamada.preguntas, 0), ms }));
+    if (orden.length > 1) res.append(el("div", "muted", "Ranking de mejor a peor:"));
+    for (const [nombre, r] of orden) res.append(tarjeta(nombre, r));
+    marcar(res.querySelector(".card"));
+    panel.mostrar(orden[0][1].llamada, orden[0][0]);
+    res.firstChild.scrollIntoView({ behavior: "smooth", block: "start" });
+  } catch (e) {
+    res.replaceChildren(el("div", "err", "Error: " + e.message));
+  }
+  $("#analizar").disabled = $("#todos").disabled = false;
+}
+
+$("#analizar").onclick = () => {
+  const cv = $("#cv").value.trim();
+  if (!cv) return alert("Pega un CV o elige uno de ejemplo");
+  const chip = $("#cvs .chip.on");
+  const nombre = chip && ejemplos.cvs.find((c) => c.nombre === chip.textContent)?.cv === cv ? chip.textContent : "Tu CV";
+  correr([{ nombre, cv }]);
+};
+$("#todos").onclick = () => correr(ejemplos.cvs);
+
+api("/api/ejemplos/cv").then((d) => {
+  ejemplos = d;
+  $("#oferta").value = d.oferta;
+  $("#obligatorios").value = d.obligatorios.join("\n");
+  $("#deseables").value = d.deseables.join("\n");
+  for (const c of d.cvs) {
+    const b = el("button", "chip", c.nombre);
+    b.onclick = () => {
+      $("#cvs").querySelectorAll(".chip").forEach((x) => x.classList.toggle("on", x === b));
+      $("#cv").value = c.cv;
+    };
+    $("#cvs").append(b);
+  }
+  const libre = el("button", "chip", "✏️ Pegar el mío");
+  libre.onclick = () => { $("#cvs").querySelectorAll(".chip").forEach((x) => x.classList.toggle("on", x === libre)); $("#cv").value = ""; $("#cv").focus(); };
+  $("#cvs").append(libre);
+  $("#cvs .chip").click();
+});
+</script>
+</body>
+</html>

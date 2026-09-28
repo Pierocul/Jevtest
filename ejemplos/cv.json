@@ -1,0 +1,34 @@
+{
+  "oferta": "Desarrollador/a Backend Python (semi-senior) en una startup de pagos. Trabajo 100% remoto desde Latinoamérica. Construirás las APIs que procesan pagos de miles de comercios, junto a un equipo de 6 personas. Buscamos a alguien con autonomía, que escriba código limpio y con tests.",
+  "obligatorios": [
+    "Experiencia profesional desarrollando APIs backend con Python",
+    "Experiencia con bases de datos SQL (por ejemplo PostgreSQL o MySQL)",
+    "Inglés intermedio o superior",
+    "Uso de Git y control de versiones"
+  ],
+  "deseables": [
+    "Experiencia con Docker o Kubernetes",
+    "Experiencia en fintech, pagos o banca",
+    "Experiencia con AWS, Google Cloud o Azure",
+    "Ha liderado o mentoreado a otras personas",
+    "Escribe tests automatizados"
+  ],
+  "cvs": [
+    {
+      "nombre": "Camila (muy buen perfil)",
+      "cv": "CAMILA ROJAS · Backend Developer · Santiago, Chile\n\nEXPERIENCIA\nPagoFácil (fintech) — Backend Developer · 2021 a hoy\n- Desarrollo de APIs REST con Python (FastAPI y Django) para procesar pagos con tarjeta.\n- Diseño de esquemas y optimización de consultas en PostgreSQL.\n- Despliegue con Docker en AWS (ECS, RDS). Tests con pytest; cobertura del 85%.\n- Mentora de 2 desarrolladores junior.\n\nSoftLab — Desarrolladora Python · 2019 a 2021\n- Servicios internos en Flask y MySQL. Flujo de trabajo con Git y GitHub.\n\nEDUCACIÓN\nIngeniería Civil en Computación, Universidad de Chile.\n\nIDIOMAS\nEspañol nativo. Inglés avanzado (C1).\n\nOTROS\nContribuidora de una librería open source de validación de datos."
+    },
+    {
+      "nombre": "Diego (le faltan cosas)",
+      "cv": "DIEGO MARTÍNEZ · Desarrollador Full Stack · Lima, Perú\n\nEXPERIENCIA\nTiendaNube Perú — Full Stack Developer · 2022 a hoy\n- Frontend en React y backend en Node.js con Express.\n- Base de datos MongoDB.\n- Scripts de automatización en Python para reportes internos.\n\nAgencia Creativa — Desarrollador Web · 2020 a 2022\n- Sitios web en WordPress y PHP con MySQL.\n\nHERRAMIENTAS\nGit, GitHub, Docker (básico), Figma.\n\nIDIOMAS\nEspañol nativo. Inglés básico."
+    },
+    {
+      "nombre": "Laura (otra área)",
+      "cv": "LAURA GÓMEZ · Diseñadora UX/UI · Bogotá, Colombia\n\nEXPERIENCIA\nBancoDigital — Diseñadora UX · 2020 a hoy\n- Diseño de la app móvil del banco y pruebas con usuarios.\n- Prototipos en Figma y sistema de diseño.\n\nEstudio Pixel — Diseñadora gráfica · 2018 a 2020\n- Identidad visual para marcas.\n\nFORMACIÓN\nDiseño Industrial. Curso online de introducción a Python (2024).\n\nIDIOMAS\nEspañol nativo. Inglés intermedio (B2)."
+    },
+    {
+      "nombre": "Andrés (senior que cambia mucho)",
+      "cv": "ANDRES PEREZ · Senior Python Developer · Buenos Aires\n\nEXPERIENCIA\nCriptoYa — Python Developer (7 meses, 2024)\nAPIs con Django y PostgreSQL para una exchange de criptomonedas.\n\nDeliveryApp — Backend Dev (5 meses, 2023)\nMicroservicios con FastAPI, Docker y Kubernetes en Google Cloud.\n\nMercadoPagos — Backend Dev (9 meses, 2022-2023)\nIntegraciones de pagos con Python y MySQL.\n\nStartupX — Tech Lead (6 meses, 2022)\nLideré un equipo de 4 personas.\n\nIDIOMAS\nEspañol nativo, ingles avanzado.\n\nherramientas: git, jira, docker, aws"
+    }
+  ]
+}

@@ -4,70 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Triaje de mensajes · Jev</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #0b0b0e; --panel: #121217; --panel-2: #17171d; --line: #26262e;
-    --text: #e8e8ec; --muted: #8b8b96; --accent: #ff4f9a; --accent-2: #b84dff;
-    --green: #3ddc97; --amber: #ffb547; --red: #ff5c6c; --blue: #5aa9ff;
-    --mono: "JetBrains Mono", ui-monospace, monospace; --sans: Inter, system-ui, sans-serif;
-  }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--sans); }
-  body { min-height: 100dvh; }
-  header { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
-  .logo { font-weight: 600; font-size: 17px; }
-  .logo span { color: var(--accent); }
-  .pill { font-family: var(--mono); font-size: 12px; padding: 5px 10px; border-radius: 99px; background: var(--accent); color: #fff; }
-  main { max-width: 1100px; margin: 0 auto; padding: 28px 16px 40px; }
-  .eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; color: var(--accent); text-transform: uppercase; }
-  h1 { margin: 8px 0 8px; font-size: clamp(26px, 6vw, 36px); font-weight: 600; }
-  .lead { font-family: var(--mono); font-size: 13px; line-height: 1.6; color: var(--muted); max-width: 620px; margin: 0 0 24px; }
-  .grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 16px; }
-  @media (max-width: 820px) { .grid { grid-template-columns: 1fr; } }
-  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; display: flex; flex-direction: column; min-width: 0; }
-  .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 14px; border-bottom: 1px solid var(--line); font-family: var(--mono); font-size: 12px; font-weight: 600; }
-  .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); margin-right: 8px; }
-  button { font: inherit; cursor: pointer; }
-  .ghost { font-family: var(--mono); font-size: 12px; background: transparent; color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; }
-  .ghost:disabled { opacity: .5; cursor: default; }
-  #lista { flex: 1; min-height: 280px; max-height: 60dvh; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
-  .vacio { font-family: var(--mono); font-size: 12px; color: var(--muted); line-height: 1.6; }
-  .card { background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 12px; cursor: pointer; }
-  .card.sel { border-color: var(--accent); }
-  .card .txt { font-size: 14px; line-height: 1.45; margin-bottom: 10px; overflow-wrap: anywhere; }
-  .tags { display: flex; flex-wrap: wrap; gap: 6px; }
-  .tag { font-family: var(--mono); font-size: 11px; padding: 3px 8px; border-radius: 6px; background: #1f1f27; border: 1px solid var(--line); white-space: nowrap; }
-  .tag b { font-weight: 600; }
-  .decision { margin-top: 10px; font-family: var(--mono); font-size: 12px; }
-  .ok { color: var(--green); } .warn { color: var(--amber); } .bad { color: var(--red); }
-  .bars { margin-top: 10px; display: grid; grid-template-columns: auto 1fr auto; gap: 4px 8px; align-items: center; font-family: var(--mono); font-size: 11px; color: var(--muted); }
-  .bar { height: 6px; background: #22222b; border-radius: 3px; overflow: hidden; }
-  .bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent-2), var(--accent)); }
-  .cargando { font-family: var(--mono); font-size: 12px; color: var(--muted); }
-  form { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--line); }
-  input { flex: 1; min-width: 0; font-family: var(--mono); font-size: 16px; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
-  input:focus { outline: none; border-color: var(--accent); }
-  .primary { background: var(--accent); color: #fff; border: 0; border-radius: 8px; padding: 0 16px; font-weight: 600; }
-  .primary:disabled { opacity: .5; }
-  .tabs { display: flex; gap: 4px; padding: 8px 8px 0; border-bottom: 1px solid var(--line); }
-  .tab { font-family: var(--mono); font-size: 12px; color: var(--muted); background: none; border: 0; padding: 8px 10px; border-bottom: 2px solid transparent; }
-  .tab.on { color: var(--text); border-color: var(--accent); }
-  pre { margin: 0; padding: 14px; font-family: var(--mono); font-size: 12px; line-height: 1.6; overflow: auto; max-height: 60dvh; white-space: pre; }
-  .k { color: var(--accent); } .s { color: var(--green); } .c { color: var(--muted); } .f { color: var(--blue); }
-  .err { color: var(--red); font-family: var(--mono); font-size: 12px; }
-</style>
+<link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-<header>
-  <div class="logo">jev<span>/demos</span></div>
-  <div class="pill">📨 Triaje de mensajes</div>
-</header>
+<header></header>
 <main>
   <div class="eyebrow">Patrón · Enrutado por intención</div>
   <h1>📨 Triaje de mensajes</h1>
-  <p class="lead">Cada mensaje de cliente pasa por Jev: tipo (Choice), spam (Noul) y urgencia (Score) en una sola llamada. Toca un mensaje para ver su respuesta JSON.</p>
+  <p class="lead">Cada mensaje de cliente pasa por Jev: tipo (Choice), spam (Noul) y urgencia (Score) en una sola llamada. Toca un mensaje para ver qué se envió y qué respondió.</p>
 
   <div class="grid">
     <section class="panel">
@@ -75,67 +20,22 @@
         <span><span class="dot"></span>MENSAJES DE CLIENTES</span>
         <button class="ghost" id="ejemplos">▶ Probar ejemplos</button>
       </div>
-      <div id="lista"><div class="vacio" id="vacio">Toca «Probar ejemplos» o escribe tu propio mensaje. Cada mensaje pasa por Jev y aparece aquí con su clasificación.</div></div>
-      <form id="form">
+      <div id="lista" class="panel-body" style="min-height:260px;max-height:60dvh;overflow-y:auto">
+        <div class="vacio" id="vacio">Toca «Probar ejemplos» o escribe tu propio mensaje.</div>
+      </div>
+      <form id="form" class="fila" style="padding:12px;border-top:1px solid var(--line);flex-wrap:nowrap">
         <input id="entrada" placeholder="Escribe un mensaje de cliente…" maxlength="1000" autocomplete="off">
         <button class="primary" id="enviar">Enviar</button>
       </form>
     </section>
-
-    <section class="panel">
-      <div class="tabs">
-        <button class="tab on" data-tab="codigo">triaje.py</button>
-        <button class="tab" data-tab="json">respuesta.json</button>
-      </div>
-      <pre id="codigo"><span class="k">from</span> typesafe_sdk <span class="k">import</span> Choice, Noul, Score, TypeSafeClient
-
-<span class="c"># Una llamada, tres preguntas tipadas.</span>
-response = client.<span class="f">system_one</span>(
-    state={<span class="s">"mensaje_del_cliente"</span>: mensaje},
-    questions={
-        <span class="s">"tipo"</span>: <span class="f">Choice</span>(
-            instructions=<span class="s">"¿Qué tipo de mensaje es?"</span>,
-            criteria={
-                <span class="s">"consulta"</span>: <span class="s">"Pide información"</span>,
-                <span class="s">"queja"</span>: <span class="s">"Reclama por un problema"</span>,
-                <span class="s">"venta"</span>: <span class="s">"Quiere comprar"</span>,
-                <span class="s">"otro"</span>: <span class="s">"Ninguna de las anteriores"</span>,
-            },
-        ),
-        <span class="s">"spam"</span>: <span class="f">Noul</span>(
-            instructions=<span class="s">"¿Es spam?"</span>,
-        ),
-        <span class="s">"urgencia"</span>: <span class="f">Score</span>(
-            instructions=<span class="s">"¿Qué tan urgente es?"</span>,
-            criteria=[<span class="s">"baja"</span>, <span class="s">"media"</span>, <span class="s">"alta"</span>],
-        ),
-    },
-)
-
-<span class="c"># Tu código decide qué hacer:</span>
-<span class="k">if</span> response.nouls[<span class="s">"spam"</span>].noul > <span class="f">0.8</span>:  descartar()
-<span class="k">elif</span> confianza < <span class="f">0.6</span>:                  revisar_a_mano()
-<span class="k">else</span>:                                  enviar_al_equipo()</pre>
-      <pre id="json" hidden><span class="c">// Analiza un mensaje para ver aquí la respuesta de Jev.</span></pre>
-    </section>
+    <section id="json"></section>
   </div>
 </main>
-
+<script src="/static/comun.js"></script>
 <script>
-const $ = (s) => document.querySelector(s);
-const lista = $("#lista"), entrada = $("#entrada"), enviar = $("#enviar"), btnEj = $("#ejemplos");
-let ejemplos = [], codigo = "";
-try { codigo = localStorage.getItem("codigo") || ""; } catch {}
-
-const pct = (x) => Math.round(x * 100) + "%";
+const lista = $("#lista"), panel = panelJSON($("#json"));
 const EQUIPO = { consulta: "atención al cliente", queja: "soporte", venta: "ventas", otro: "bandeja general" };
-
-function el(tag, cls, text) {
-  const e = document.createElement(tag);
-  if (cls) e.className = cls;
-  if (text != null) e.textContent = text;
-  return e;
-}
+let ejemplos = [];
 
 function decidir(r) {
   if (r.spam > 0.8) return ["bad", "🚫 Spam → descartar"];
@@ -144,88 +44,52 @@ function decidir(r) {
   return ["ok", `✓ Enviar a ${EQUIPO[r.tipo]} · prioridad ${r.urgencia}`];
 }
 
-function mostrarJSON(r) {
-  $("#json").textContent = JSON.stringify(r.respuesta, null, 2);
-  document.querySelectorAll(".card").forEach((c) => c.classList.remove("sel"));
-}
-
 function pintar(card, r) {
   card.replaceChildren(el("div", "txt", r.mensaje));
   const tags = el("div", "tags");
-  const t = (label, val) => { const s = el("span", "tag", label + " "); s.append(el("b", null, val)); tags.append(s); };
-  t("tipo", `${r.tipo} ${pct(r.tipo_probs[r.tipo])}`);
-  t("spam", pct(r.spam));
-  t("urgencia", `${r.urgencia} ${r.urgencia_score.toFixed(2)}/2`);
-  card.append(tags);
-
-  const bars = el("div", "bars");
-  const bar = (label, v) => {
-    bars.append(el("span", null, label));
-    const b = el("div", "bar"), i = el("i"); i.style.width = pct(v); b.append(i);
-    bars.append(b, el("span", null, pct(v)));
-  };
-  bar("confianza tipo", r.tipo_conf);
-  bar("confianza urgencia", r.urgencia_conf);
-  card.append(bars);
-
+  tags.append(
+    tag("tipo", `${r.tipo} ${pct(r.tipo_probs[r.tipo])}`),
+    tag("spam", pct(r.spam)),
+    tag("urgencia", `${r.urgencia} ${r.urgencia_score.toFixed(2)}/2`),
+  );
   const [cls, txt] = decidir(r);
-  card.append(el("div", "decision " + cls, txt));
-  card.onclick = () => { mostrarJSON(r); card.classList.add("sel"); abrirTab("json"); };
+  card.append(tags, barras([["confianza tipo", r.tipo_conf], ["confianza urgencia", r.urgencia_conf]]),
+              el("div", "decision " + cls, txt));
+  card.onclick = () => { marcar(card); panel.mostrar(r.llamada); };
 }
 
 async function analizar(mensaje) {
   $("#vacio")?.remove();
   const card = el("div", "card");
+  card.style.display = "grid"; card.style.gap = "10px";
   card.append(el("div", "txt", mensaje), el("div", "cargando", "Jev está pensando…"));
   lista.append(card);
   lista.scrollTop = lista.scrollHeight;
   try {
-    const res = await fetch("/api/analizar", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Codigo": codigo },
-      body: JSON.stringify({ mensaje }),
-    });
-    if (res.status === 401) {
-      codigo = prompt("Código de acceso:") || "";
-      try { localStorage.setItem("codigo", codigo); } catch {}
-      card.remove();
-      if (codigo) return analizar(mensaje);
-      return;
-    }
-    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).detail || "Error " + res.status);
-    const r = await res.json();
+    const r = await api("/api/triaje", { mensaje });
     pintar(card, r);
-    mostrarJSON(r);
-    card.classList.add("sel");
+    marcar(card);
+    panel.mostrar(r.llamada);
   } catch (e) {
-    card.querySelector(".cargando").replaceWith(el("div", "err", "Error: " + (typeof e.message === "string" ? e.message : "no se pudo analizar")));
+    card.querySelector(".cargando").replaceWith(el("div", "err", "Error: " + e.message));
   }
 }
 
 $("#form").onsubmit = async (e) => {
   e.preventDefault();
-  const m = entrada.value.trim();
+  const m = $("#entrada").value.trim();
   if (!m) return;
-  entrada.value = "";
-  enviar.disabled = true;
+  $("#entrada").value = "";
+  $("#enviar").disabled = true;
   await analizar(m);
-  enviar.disabled = false;
+  $("#enviar").disabled = false;
 };
-
-btnEj.onclick = async () => {
-  btnEj.disabled = true;
-  for (const m of ejemplos) await analizar(m);
-  btnEj.disabled = false;
+$("#ejemplos").onclick = async () => {
+  $("#ejemplos").disabled = true;
+  await Promise.all(ejemplos.map(analizar));
+  $("#ejemplos").disabled = false;
 };
-
-function abrirTab(nombre) {
-  document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("on", t.dataset.tab === nombre));
-  $("#codigo").hidden = nombre !== "codigo";
-  $("#json").hidden = nombre !== "json";
-}
-document.querySelectorAll(".tab").forEach((t) => (t.onclick = () => abrirTab(t.dataset.tab)));
-
-fetch("/api/config").then((r) => r.json()).then((c) => { ejemplos = c.ejemplos; });
+api("/api/ejemplos/triaje").then((d) => (ejemplos = d.mensajes));
 </script>
 </body>
 </html>

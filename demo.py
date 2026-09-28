@@ -6,7 +6,7 @@ Para cada mensaje se hace UNA sola llamada con tres preguntas:
   - urgencia (Score):  baja, media o alta
 """
 
-from typesafe_sdk import Choice, Noul, Score, TypeSafeClient
+from typesafe_sdk import Choice, Noul, Score, SystemOneResponse, TypeSafeClient
 
 MODELO = "jev-latest"
 
@@ -46,6 +46,10 @@ def analizar(client: TypeSafeClient, mensaje: str) -> dict:
     r = client.system_one(
         state={"mensaje_del_cliente": mensaje}, questions=PREGUNTAS, model=MODELO
     )
+    return resumir(mensaje, r)
+
+
+def resumir(mensaje: str, r: SystemOneResponse) -> dict:
     tipo, spam, urg = r.choices["tipo"], r.nouls["spam"], r.scores["urgencia"]
     return {
         "mensaje": mensaje,
@@ -59,7 +63,6 @@ def analizar(client: TypeSafeClient, mensaje: str) -> dict:
         "urgencia_probs": {urg.legend[k]: v for k, v in urg.probabilities.items()},
         "urgencia_conf": urg.confidence,
         "modelo": r.model,
-        "respuesta": r.model_dump(mode="json"),
     }
 
 

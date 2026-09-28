@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Corrector de exámenes · Jev</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/style.css">
+<style>
+  .nota { font-size: 30px; font-weight: 600; }
+  .items { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 6px; }
+  .item { font-family: var(--mono); font-size: 11px; border-radius: 6px; padding: 6px; background: #1f1f27; border: 1px solid var(--line); }
+  .item b { display: block; font-size: 13px; margin-bottom: 2px; }
+  .preg { font-size: 13px; line-height: 1.5; border-top: 1px solid var(--line); padding-top: 8px; margin-top: 8px; }
+  .preg:first-of-type { border: 0; margin: 0; padding: 0; }
+  .preg small { font-family: var(--mono); color: var(--muted); display: block; margin-top: 2px; }
+</style>
+</head>
+<body>
+<header></header>
+<main>
+  <div class="eyebrow">Patrón · Fan-out + puntuación compuesta</div>
+  <h1>📝 Corrector de exámenes</h1>
+  <p class="lead">Una llamada por alumno con todas sus preguntas a la vez (¿es correcta?, nivel de la respuesta, tipo de error…), y todos los alumnos en paralelo. Jev juzga; el código suma la nota y marca lo dudoso para el profe.</p>
+
+  <div class="grid">
+    <section class="panel">
+      <div class="panel-head"><span><span class="dot"></span><span id="titulo">EXAMEN</span></span></div>
+      <div class="panel-body">
+        <details id="examen"><summary>📋 Ver preguntas y respuestas correctas</summary></details>
+        <div>
+          <label>Alumnos (toca para ver o cambiar sus respuestas)</label>
+          <div id="alumnos" style="display:grid;gap:8px"></div>
+        </div>
+        <div class="fila">
+          <button class="ghost" id="nuevo">＋ Añadir alumno</button>
+          <button class="primary" id="corregir" style="flex:1">▶ Corregir toda la clase</button>
+        </div>
+        <div id="resultados" style="display:grid;gap:10px"></div>
+      </div>
+    </section>
+    <section id="json"></section>
+  </div>
+</main>
+<script src="/static/comun.js"></script>
+<script>
+const panel = panelJSON($("#json"));
+let examen = null;
+const ICONO = { ok: "✓", parcial: "◐", mal: "✗" };
+const ERROR_TXT = { concepto: "concepto", incompleta: "incompleta", en_blanco: "en blanco", fuera_de_tema: "fuera de tema" };
+
+function bloqueAlumno(alumno, abierto = false) {
+  const d = el("details");
+  d.open = abierto;
+  const sum = el("summary", null, alumno.nombre);
+  const nombre = el("input");
+  nombre.value = alumno.nombre;
+  nombre.oninput = () => (sum.textContent = nombre.value || "Sin nombre");
+  nombre.className = "nombre";
+  d.append(sum, el("label", null, "Nombre"), nombre);
+  examen.preguntas.forEach((p, i) => {
+    const t = el("textarea");
+    t.value = alumno.respuestas[i] ?? "";
+    t.style.minHeight = p.tipo === "corta" ? "44px" : "90px";
+    const lab = el("label", null, `P${i + 1} · ${p.enunciado}`);
+    lab.style.textTransform = "none"; lab.style.marginTop = "10px";
+    d.append(lab, t);
+  });
+  const quitar = el("button", "ghost", "Quitar alumno");
+  quitar.style.marginTop = "10px";
+  quitar.onclick = () => d.remove();
+  d.append(quitar);
+  return d;
+}
+
+function leerAlumnos() {
+  return [...$("#alumnos").children].map((d) => ({
+    nombre: $(".nombre", d).value.trim() || "Sin nombre",
+    respuestas: [...d.querySelectorAll("textarea")].map((t) => t.value),
+  }));
+}
+
+function tarjeta(a) {
+  const card = el("div", "card");
+  card.style.display = "grid"; card.style.gap = "10px";
+  const nota = a.nota / a.max;
+  const cls = nota >= 0.7 ? "ok" : nota >= 0.5 ? "warn" : "bad";
+  const cab = el("div", "fila");
+  cab.style.justifyContent = "space-between";
+  const n = el("div", "nota " + cls, `${a.nota.toFixed(1)}`);
+  n.append(el("span", "muted", ` / ${a.max}`));
+  cab.append(el("b", null, a.nombre), n);
+
+  const avisos = el("div", "tags");
+  if (a.revisar) avisos.append(tag("⚠", `${a.revisar} respuesta(s) para revisar`, "warn"));
+  if (a.inapropiado > 0.7) avisos.append(tag("🚩", `respuestas inapropiadas ${pct(a.inapropiado)}`, "bad"));
+  if (!a.revisar && a.inapropiado <= 0.7) avisos.append(tag("✓", "sin dudas", "ok"));
+
+  const items = el("div", "items");
+  const consejos = el("ul", "lista");
+  for (const it of a.items) {
+    const estado = it.puntos >= it.max ? "ok" : it.puntos > 0 ? "parcial" : "mal";
+    const box = el("div", "item " + (estado === "ok" ? "ok" : estado === "parcial" ? "warn" : "bad"));
+    box.append(el("b", null, `P${it.n} ${ICONO[estado]}${it.dudosa ? " ?" : ""}`));
+    box.append(el("span", "muted", `${+it.puntos.toFixed(2)}/${it.max}`));
+    const extra = "prob_correcta" in it ? `correcta ${pct(it.prob_correcta)}` : `nivel ${it.nivel}/3 · conf ${pct(it.confianza)}`;
+    box.append(el("div", "muted", extra));
+    if (it.error !== "ninguno") box.append(el("div", null, ERROR_TXT[it.error] ?? it.error));
+    box.title = it.nivel_texto ?? "";
+    items.append(box);
+    if (it.consejo) consejos.append(el("li", null, `P${it.n}: ${it.consejo}`));
+    if (it.dudosa) consejos.append(el("li", "warn", `P${it.n}: Jev no está seguro, que la revise el profe.`));
+  }
+  card.append(cab, avisos, items);
+  if (consejos.children.length) {
+    const d = el("details");
+    d.append(el("summary", null, `💬 Ver comentarios (${consejos.children.length})`), consejos);
+    d.onclick = (e) => e.stopPropagation();
+    card.append(d);
+  }
+  card.onclick = () => { marcar(card); panel.mostrar(a.llamada, a.nombre); };
+  return card;
+}
+
+$("#corregir").onclick = async () => {
+  const alumnos = leerAlumnos();
+  if (!alumnos.length) return;
+  const res = $("#resultados");
+  res.replaceChildren(el("div", "cargando", `Corrigiendo ${alumnos.length} exámenes a la vez…`));
+  $("#corregir").disabled = true;
+  try {
+    const r = await api("/api/examen", { titulo: examen.titulo, preguntas: examen.preguntas, alumnos });
+    res.replaceChildren(metricas(r.total));
+    r.alumnos.forEach((a) => res.append(tarjeta(a)));
+    const primera = res.querySelector(".card");
+    marcar(primera);
+    panel.mostrar(r.alumnos[0].llamada, r.alumnos[0].nombre);
+    res.firstChild.scrollIntoView({ behavior: "smooth", block: "start" });
+  } catch (e) {
+    res.replaceChildren(el("div", "err", "Error: " + e.message));
+  }
+  $("#corregir").disabled = false;
+};
+
+$("#nuevo").onclick = () => {
+  const d = bloqueAlumno({ nombre: "Yo", respuestas: [] }, true);
+  $("#alumnos").append(d);
+  d.scrollIntoView({ behavior: "smooth", block: "start" });
+};
+
+api("/api/ejemplos/examen").then((d) => {
+  examen = d;
+  $("#titulo").textContent = d.titulo.toUpperCase();
+  d.preguntas.forEach((p, i) => {
+    const div = el("div", "preg");
+    div.append(el("b", null, `P${i + 1}. ${p.enunciado}`));
+    div.append(el("small", null, `${p.tipo === "corta" ? "Respuesta corta" : "Desarrollo"} · ${p.puntos} pts`));
+    div.append(el("div", "ok", (p.tipo === "corta" ? "✓ " : "Criterios: ") + p.clave));
+    $("#examen").append(div);
+  });
+  d.alumnos.forEach((a) => $("#alumnos").append(bloqueAlumno(a)));
+});
+</script>
+</body>
+</html>

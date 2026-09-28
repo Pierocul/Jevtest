@@ -1,4 +1,22 @@
-# Demo: clasificar mensajes de clientes con Jev
+# Demos de Jev (TypeSafe)
+
+Cinco demos web que muestran cómo Jev responde **muchas preguntas a la vez**:
+
+| Página | Qué hace | Preguntas por llamada |
+|---|---|---|
+| `/` 📨 Triaje | Clasifica mensajes de clientes | 3 |
+| `/examen` 📝 Exámenes | Corrige a toda una clase en paralelo | ~15 por alumno |
+| `/cv` 👤 CV vs oferta | Revisa cada requisito de la oferta | 14 |
+| `/pelicula` 🎬 Adivina la peli | Juego de pistas sobre ~70 películas | 9 |
+| `/ensayo` ✍️ Ensayos | Rúbrica de 6 aspectos + chequeos | 12 |
+
+Cada página trae ejemplos listos; en [EJEMPLOS.md](EJEMPLOS.md) hay más textos
+para copiar y pegar. El panel derecho muestra exactamente qué se envió a Jev y
+qué respondió. El código de cada demo está en `demos/`.
+
+---
+
+# Demo de terminal: clasificar mensajes de clientes
 
 Usa el modelo **Jev** de [TypeSafe](https://docs.typesafe.ai) (SDK oficial `typesafe-sdk`).
 Para cada mensaje hace **una sola llamada** con tres preguntas:
@@ -37,7 +55,7 @@ Verás una tabla con los 5 mensajes de ejemplo. Para probar los tuyos, edita la 
 
 ## Versión web (para probar desde el celular)
 
-`app.py` sirve una página donde escribes mensajes y ves la clasificación al momento.
+`app.py` sirve todas las demos.
 La clave de TypeSafe se queda en el servidor; el navegador nunca la ve.
 
 Correrla en tu computadora:
